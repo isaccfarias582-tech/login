@@ -312,7 +312,7 @@
     }
 
     function loadStudents() {
-        if (CONFIG.WEB_APP_URL === "SUA_URL_DO_WEB_APP_AQUI" || CONFIG.WEB_APP_URL.trim() === "") {
+        if (CONFIG.WEB_APP_URL === "https://script.google.com/macros/s/AKfycbwWMXqqAcm_o61iSVlPbRsI_Jn--V1Xh_YE9X1Yxft66tQXGpkLeZTRJWpT0eQyX3DQ/exec" || CONFIG.WEB_APP_URL.trim() === "") {
             document.getElementById('loadingState').innerHTML = "⚠️ <strong>Configuração necessária:</strong> Altere a constante <code>CONFIG.WEB_APP_URL</code> no script do arquivo HTML com o endereço gerado pelo Apps Script.";
             return;
         }
@@ -386,7 +386,7 @@
         
         if (!name) return;
         
-        if (CONFIG.WEB_APP_URL === "https://script.google.com/a/macros/eaportal.org/s/AKfycbyRcslYq48Z0NgZcu14v6N1sE-UnAWVBFW6XREWU5fnrqlk3qQA4RdDKHjPd-fHbdV_/exec") {
+        if (CONFIG.WEB_APP_URL === "https://script.google.com/macros/s/AKfycbwWMXqqAcm_o61iSVlPbRsI_Jn--V1Xh_YE9X1Yxft66tQXGpkLeZTRJWpT0eQyX3DQ/exec") {
             showAlert("Preencha a URL do Web App antes de salvar.", "error");
             return;
         }
