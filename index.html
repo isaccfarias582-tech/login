@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Alunos</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-color: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --zebra-color: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2.25rem;
+            color: #0f172a;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .card {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .form-group {
+                flex-direction: column;
+            }
+        }
+
+        .input-control {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            color: var(--text-color);
+        }
+
+        .input-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn:disabled {
+            background-color: var(--text-secondary);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background-color: #ecfdf5;
+            color: var(--success-color);
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background-color: #fef2f2;
+            color: var(--error-color);
+            border: 1px solid #fca5a5;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #334155;
+            padding: 0.85rem 1rem;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: var(--zebra-color);
+        }
+
+        tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 3px solid rgba(79, 70, 229, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Painel de Alunos</h1>
+        <p>Website Estático integrado com Google Planilhas via Apps Script</p>
+    </header>
+
+    <div class="card">
+        <div id="alertBox" class="alert"></div>
+        
+        <form id="studentForm" onsubmit="saveStudent(event)">
+            <div class="form-group">
+                <input 
+                    type="text" 
+                    id="studentName" 
+                    class="input-control" 
+                    placeholder="Digite o nome completo do aluno" 
+                    required 
+                    autocomplete="off"
+                >
+                <button type="submit" id="saveBtn" class="btn">
+                    <span>Salvar</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table id="studentsTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome do Aluno</th>
+                        <th>Data de Cadastro</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsList"></tbody>
+            </table>
+            
+            <div id="loadingState" class="loading-container">
+                <div class="spinner"></div>
+                <span>Carregando lista de alunos...</span>
+            </div>
+            
+            <div id="emptyState" class="empty-state" style="display: none;">
+                Nenhum aluno cadastrado no momento.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // CONFIGURAÇÃO: Substitua pelo link do Web App fornecido pelo Google Apps Script
+    const CONFIG = {
+        WEB_APP_URL: "SUA_URL_DO_WEB_APP_AQUI"
+    };
+
+    // Mecanismo JSONP dinâmico para anular restrições de CORS no GitHub Pages
+    function jsonpRequest(url, params, successCallback, errorCallback) {
+        const callbackName = 'jsonp_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        
+        const timeoutId = setTimeout(() => {
+            cleanup();
+            if (errorCallback) errorCallback(new Error("Tempo limite da requisição esgotado. Verifique se a URL do Web App está correta."));
+        }, 20000);
+
+        function cleanup() {
+            clearTimeout(timeoutId);
+            const script = document.getElementById(callbackName);
+            if (script) script.remove();
+            delete window[callbackName];
+        }
+
+        window[callbackName] = function(data) {
+            cleanup();
+            successCallback(data);
+        };
+
+        const urlObj = new URL(url);
+        for (const key in params) {
+            urlObj.searchParams.set(key, params[key]);
+        }
+        urlObj.searchParams.set('callback', callbackName);
+
+        const script = document.createElement('script');
+        script.id = callbackName;
+        script.src = urlObj.toString();
+        
+        script.onerror = function() {
+            cleanup();
+            if (errorCallback) errorCallback(new Error("Falha na comunicação com o script do Google. Verifique as configurações de publicação."));
+        };
+
+        document.body.appendChild(script);
+    }
+
+    function showAlert(message, type) {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.textContent = message;
+        alertBox.className = `alert alert-${type}`;
+        alertBox.style.display = 'block';
+        
+        if (type === 'success') {
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 4000);
+        }
+    }
+
+    function loadStudents() {
+        if (CONFIG.WEB_APP_URL === "SUA_URL_DO_WEB_APP_AQUI" || CONFIG.WEB_APP_URL.trim() === "") {
+            document.getElementById('loadingState').innerHTML = "⚠️ <strong>Configuração necessária:</strong> Altere a constante <code>CONFIG.WEB_APP_URL</code> no script do arquivo HTML com o endereço gerado pelo Apps Script.";
+            return;
+        }
+
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('studentsTable').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'none';
+
+        jsonpRequest(
+            CONFIG.WEB_APP_URL, 
+            { action: 'list' }, 
+            function(response) {
+                document.getElementById('loadingState').style.display = 'none';
+                
+                if (response.success) {
+                    renderTable(response.data);
+                } else {
+                    showAlert("Erro retornado pelo servidor: " + response.error, "error");
+                }
+            },
+            function(error) {
+                document.getElementById('loadingState').style.display = 'none';
+                showAlert(error.message, "error");
+            }
+        );
+    }
+
+    function renderTable(students) {
+        const tbody = document.getElementById('studentsList');
+        const table = document.getElementById('studentsTable');
+        const emptyState = document.getElementById('emptyState');
+        
+        tbody.innerHTML = '';
+        
+        if (!students || students.length === 0) {
+            table.style.display = 'none';
+            emptyState.style.display = 'block';
+            return;
+        }
+        
+        students.forEach(student => {
+            const row = document.createElement('tr');
+            
+            let dateStr = student.createdAt || '-';
+            if (dateStr && dateStr.includes(' ')) {
+                const parts = dateStr.split(' ');
+                const d = parts[0].split('-');
+                if(d.length === 3) {
+                    dateStr = `${d[2]}/${d[1]}/${d[0]} ${parts[1] || ''}`;
+                }
+            }
+
+            row.innerHTML = `
+                <td style="font-family: monospace; color: #64748b; font-size: 0.85rem;">${student.id}</td>
+                <td style="font-weight: 500;">${escapeHtml(student.name)}</td>
+                <td style="color: #64748b; font-size: 0.9rem;">${dateStr}</td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        emptyState.style.display = 'none';
+        table.style.display = 'table';
+    }
+
+    function saveStudent(event) {
+        event.preventDefault();
+        
+        const nameInput = document.getElementById('studentName');
+        const saveBtn = document.getElementById('saveBtn');
+        const name = nameInput.value.trim();
+        
+        if (!name) return;
+        
+        if (CONFIG.WEB_APP_URL === "https://script.google.com/a/macros/eaportal.org/s/AKfycbyRcslYq48Z0NgZcu14v6N1sE-UnAWVBFW6XREWU5fnrqlk3qQA4RdDKHjPd-fHbdV_/exec") {
+            showAlert("Preencha a URL do Web App antes de salvar.", "error");
+            return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<div class="spinner" style="width:1rem; height:1rem; margin-right:0.5rem; border-top-color:#ffffff;"></div>Salvando...';
+
+        jsonpRequest(
+            CONFIG.WEB_APP_URL,
+            { action: 'add', name: name },
+            function(response) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<span>Salvar</span>';
+                
+                if (response.success) {
+                    showAlert("Aluno salvo com sucesso!", "success");
+                    nameInput.value = '';
+                    loadStudents();
+                } else {
+                    showAlert("Erro ao adicionar: " + response.error, "error");
+                }
+            },
+            function(error) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<span>Salvar</span>';
+                showAlert(error.message, "error");
+            }
+        );
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g, "&amp;")
+                  .replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;")
+                  .replace(/"/g, "&quot;")
+                  .replace(/'/g, "&#039;");
+    }
+
+    window.onload = loadStudents;
+</script>
+
+</body>
+</html>
