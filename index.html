@@ -312,45 +312,30 @@
     }
 
     function loadStudents() {
-        if (CONFIG.WEB_APP_URL === "https://script.google.com/macros/s/AKfycbwWMXqqAcm_o61iSVlPbRsI_Jn--V1Xh_YE9X1Yxft66tQXGpkLeZTRJWpT0eQyX3DQ/exec" || CONFIG.WEB_APP_URL.trim() === "") {
-            document.getElementById('loadingState').innerHTML = "⚠️ <strong>Configuração necessária:</strong> Altere a constante <code>CONFIG.WEB_APP_URL</code> no script do arquivo HTML com o endereço gerado pelo Apps Script.";
-            return;
-        }
-
-        document.getElementById('loadingState').style.display = 'block';
-        document.getElementById('studentsTable').style.display = 'none';
-        document.getElementById('emptyState').style.display = 'none';
-
-        jsonpRequest(
-            CONFIG.WEB_APP_URL, 
-            { action: 'list' }, 
-            function(response) {
-                document.getElementById('loadingState').style.display = 'none';
-                
-                if (response.success) {
-                    renderTable(response.data);
-                } else {
-                    showAlert("Erro retornado pelo servidor: " + response.error, "error");
-                }
-            },
-            function(error) {
-                document.getElementById('loadingState').style.display = 'none';
-                showAlert(error.message, "error");
-            }
-        );
+    // Agora só bloqueia se o campo estiver realmente vazio
+    if (CONFIG.WEB_APP_URL.trim() === "") {
+        document.getElementById('loadingState').innerHTML = "⚠️ <strong>Configuração necessária:</strong> Insira a URL do Web App gerada pelo Apps Script.";
+        return;
     }
 
-    function renderTable(students) {
-        const tbody = document.getElementById('studentsList');
-        const table = document.getElementById('studentsTable');
-        const emptyState = document.getElementById('emptyState');
-        
-        tbody.innerHTML = '';
-        
-        if (!students || students.length === 0) {
-            table.style.display = 'none';
-            emptyState.style.display = 'block';
-            return;
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('studentsTable').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'none';
+
+    jsonpRequest(
+        CONFIG.WEB_APP_URL, 
+        { action: 'list' }, 
+        function(response) {
+            document.getElementById('loadingState').style.display = 'none';
+            if (response.success) {
+                renderTable(response.data);
+            } else {
+                showAlert("Erro retornado pelo servidor: " + response.error, "error");
+            }
+        },
+        function(error) {
+            document.getElementById('loadingState').style.display = 'none';
+            showAlert(error.message, "error");
         }
         
         students.forEach(student => {
